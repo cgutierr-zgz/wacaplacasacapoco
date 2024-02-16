@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_dynamic_calls
+
 import 'dart:developer';
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
@@ -7,56 +9,15 @@ import 'package:blurhash/blurhash.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:image/image.dart' as img;
 
-typedef Vector2 = (int x, int y);
+part 'downloader_state.dart';
 
-class SapatitoState {
-  const SapatitoState({
-    required this.images,
-    required this.downloadSizes,
-    required this.blurHashMode,
-    required this.downloadBlurHashImages,
-  });
+class DownloaderCubit extends HydratedCubit<DownloaderState> {
+  DownloaderCubit() : super(DownloaderState.initialState);
 
-  final Map<String, Uint8List> images;
-  final List<Vector2> downloadSizes;
-  final Vector2 blurHashMode;
-  final bool downloadBlurHashImages;
-
-  SapatitoState copyWith({
-    Map<String, Uint8List>? images,
-    List<Vector2>? downloadSizes,
-    Vector2? blurHashMode,
-    bool? downloadBlurHashImages,
-  }) {
-    return SapatitoState(
-      images: images ?? this.images,
-      downloadSizes: downloadSizes ?? this.downloadSizes,
-      blurHashMode: blurHashMode ?? this.blurHashMode,
-      downloadBlurHashImages:
-          downloadBlurHashImages ?? this.downloadBlurHashImages,
+  void updateBlurHash({int? x, int? y}) {
+    final newState = state.copyWith(
+      blurHashMode: (x ?? state.blurHashMode.$1, y ?? state.blurHashMode.$2),
     );
-  }
-}
-
-class DownloaderCubit extends HydratedCubit<SapatitoState> {
-  DownloaderCubit()
-      : super(
-          const SapatitoState(
-            images: {},
-            downloadSizes: [
-              (250, 250),
-              (700, 700),
-              (1200, 1200),
-            ],
-            blurHashMode: (3, 3),
-            downloadBlurHashImages: false,
-          ),
-        );
-
-  final images = Map<String, Uint8List>;
-
-  void updateBlurHash((int x, int y) vector2) {
-    final newState = state.copyWith(blurHashMode: vector2);
     emit(newState);
   }
 
@@ -87,8 +48,6 @@ class DownloaderCubit extends HydratedCubit<SapatitoState> {
       final images = {...state.images}..remove(fileName);
       final newState = state.copyWith(images: images);
       emit(newState);
-
-      emit(newState);
     }
   }
 
@@ -107,49 +66,72 @@ class DownloaderCubit extends HydratedCubit<SapatitoState> {
       state.blurHashMode.$1,
       state.blurHashMode.$2,
     );
-    // ? download to a folder/zip ? idk :) :P :D ;)
+    // TODO: Download to folder/zip (?)
 
-    // MARK: Blurhash TXT
-    final url = html.Url.createObjectUrlFromBlob(html.Blob([blurHash]));
-    html.AnchorElement(href: url)
-      ..setAttribute("download", "${fileName}_blurhash.txt")
-      ..click();
+    _downloadItem(
+      blobParts: [blurHash],
+      fileName: '${fileName}_blurhash.txt',
+    );
 
-    // MARK: Images
     for (final size in state.downloadSizes) {
-      final name = "${size.$1}x${size.$2}_$fileName";
+      final name = '${size.$1}x${size.$2}_$fileName';
 
       try {
         if (state.downloadBlurHashImages) {
           final blurImage = await BlurHash.decode(blurHash, size.$1, size.$2);
 
-          final blob = html.Blob([blurImage]);
-          final url = html.Url.createObjectUrlFromBlob(blob);
-          html.AnchorElement(href: url)
-            ..setAttribute("download", "image_$size.png")
-            ..click();
+          _downloadItem(
+            blobParts: [blurImage],
+            fileName: '${name}_blurhash.png',
+          );
         }
 
-        img.Image image = img.decodeImage(fileContent)!;
-        img.Image resized = img.copyResize(
+        final image = img.decodeImage(fileContent)!;
+        final resized = img.copyResize(
           image,
           width: size.$1,
           height: size.$2,
         );
-
-        final blob = html.Blob([img.encodePng(resized)]);
-        final url = html.Url.createObjectUrlFromBlob(blob);
-        html.AnchorElement(href: url)
-          ..setAttribute("download", "image_$size.png")
-          ..click();
+        _downloadItem(
+          blobParts: [img.encodePng(resized)],
+          fileName: '$name.png',
+        );
       } catch (e) {
-        log("Error downloading $name: $e");
+        log('Error downloading $name: $e');
       }
     }
   }
 
+  void _downloadItem({
+    required List<dynamic> blobParts,
+    required String fileName,
+  }) {
+    final blob = html.Blob(blobParts);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    html.AnchorElement(href: url)
+      ..setAttribute('download', fileName)
+      ..click();
+  }
+
+  void addDownloadSize({required int x, required int y}) {
+    final newSize = (x, y);
+    final newSizes = [...state.downloadSizes, newSize];
+    //final newState = state.copyWith(downloadSizes: newSizes);
+    final newState = state.copyWith(downloadSizes: [(200, 200), (500, 500)]);
+    emit(newState);
+  }
+
+  void removeDownloadSize(int index) {
+    if (index >= 0 && index < state.downloadSizes.length) {
+      final newSizes = List<(int, int)>.from(state.downloadSizes)
+        ..removeAt(index);
+      final newState = state.copyWith(downloadSizes: newSizes);
+      emit(newState);
+    }
+  }
+
   @override
-  SapatitoState? fromJson(Map<String, dynamic> json) {
+  DownloaderState? fromJson(Map<String, dynamic> json) {
     try {
       //final images = Map<String, Uint8List>.from(json['images']);
       final downloadSizes = (json['downloadSizes'] as List<dynamic>)
@@ -158,7 +140,7 @@ class DownloaderCubit extends HydratedCubit<SapatitoState> {
       final blurHashMode = (json['blurHashMode'][0], json['blurHashMode'][1]);
       final downloadBlurHashImages = json['downloadBlurHashImages'] as bool;
 
-      return SapatitoState(
+      return DownloaderState(
         images: {},
         downloadSizes: List.generate(downloadSizes.length, (index) {
           final item = downloadSizes[index];
@@ -168,16 +150,15 @@ class DownloaderCubit extends HydratedCubit<SapatitoState> {
         downloadBlurHashImages: downloadBlurHashImages,
       );
     } catch (e) {
-      log("$e");
+      log('Could not load state. [$e]');
       return null;
     }
   }
 
   @override
-  Map<String, dynamic>? toJson(SapatitoState state) {
+  Map<String, dynamic>? toJson(DownloaderState state) {
     try {
-      final List<List<int>> sizes =
-          state.downloadSizes.map((e) => [e.$1, e.$2]).toList();
+      final sizes = state.downloadSizes.map((e) => [e.$1, e.$2]).toList();
 
       return {
         //'images': state.images,
@@ -186,7 +167,7 @@ class DownloaderCubit extends HydratedCubit<SapatitoState> {
         'downloadBlurHashImages': state.downloadBlurHashImages,
       };
     } catch (e) {
-      log("no guardamos bien brodi $e");
+      log('Could not save state. [$e]');
       return null;
     }
   }
