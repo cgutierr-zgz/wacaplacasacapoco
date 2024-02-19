@@ -27,7 +27,7 @@ class DownloaderState {
     images: {},
     blurHashMode: (3, 3),
     downloadBlurHashImages: false,
-    maintainAspectRatio: true,
+    maintainAspectRatio: false,
   );
 
   DownloaderState copyWith({
