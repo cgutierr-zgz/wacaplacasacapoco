@@ -129,7 +129,7 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
           width: value.size.$1,
           height: value.size.$2,
           maintainAspect: state.maintainAspectRatio,
-          interpolation: img.Interpolation.average,
+          interpolation: state.interpolationMode,
         );
         List<dynamic> blobParts;
         if (ext case '.png') {
