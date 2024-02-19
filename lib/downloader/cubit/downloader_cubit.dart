@@ -78,7 +78,7 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
 
     _downloadItem(
       blobParts: [blurHash],
-      fileName: '${nameWithoutExtension}_blurhash.txt',
+      fileName: '$nameWithoutExtension.txt',
     );
 
     final image = img.decodeImage(fileContent)!;
@@ -120,7 +120,7 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
         }
         _downloadItem(
           blobParts: [blobParts],
-          fileName: '$name.png',
+          fileName: '$name$ext',
         );
       } catch (e) {
         log('Error downloading $name: $e');

@@ -1,11 +1,10 @@
-import 'dart:html';
-
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dropzone/flutter_dropzone.dart';
 import 'package:wacaplacasacapoco/downloader/downloader.dart';
 import 'package:wacaplacasacapoco/util/extensions.dart';
+import 'package:path/path.dart' as p;
 
 class DropZone extends StatefulWidget {
   const DropZone({super.key});
@@ -33,17 +32,28 @@ class _DropZoneState extends State<DropZone> {
               onHover: () => setState(() => onHover = true),
               onDrop: (ev) async {
                 final filename = await controller.getFilename(ev);
-               // final fileMIME = await controller.getFileMIME(ev);
-                
+                // final fileMIME = await controller.getFileMIME(ev);
+
                 final data = await controller.getFileData(ev);
-                setState(() => onHover = false);
-                final added = cubit.addFile(
-                  fileName: filename,
-                  fileContent: data,
-                );
-                if (!added && context.mounted) {
+
+                final ext = p.extension(filename).toLowerCase();
+
+                if (ext case '.png' || '.jpeg' || '.jpg') {
+                  setState(() => onHover = false);
+                  final added = cubit.addFile(
+                    fileName: filename,
+                    fileContent: data,
+                  );
+                  if (!added && mounted) {
+                    context.showSnackBar(
+                      'File with name "$filename" already exists',
+                      type: SnackbarType.error,
+                    );
+                  }
+                } else {
+                  if (!mounted) return;
                   context.showSnackBar(
-                    'File with name "$filename" already exists',
+                    'only .png, .jpeg and .jpg files plis <3',
                     type: SnackbarType.error,
                   );
                 }

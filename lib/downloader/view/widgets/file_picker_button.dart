@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wacaplacasacapoco/downloader/downloader.dart';
 import 'package:wacaplacasacapoco/util/extensions.dart';
+import 'package:path/path.dart' as p;
 
 class FilePickerButton extends StatelessWidget {
   const FilePickerButton({super.key});
@@ -19,14 +20,24 @@ class FilePickerButton extends StatelessWidget {
         );
         if (result == null) return;
         for (final file in result.files) {
-          if (file.bytes == null) continue;
-          final added = cubit.addFile(
-            fileName: file.name,//.split('.').first,
-            fileContent: file.bytes!,
-          );
-          if (!added && context.mounted) {
+          final ext = p.extension(file.name).toLowerCase();
+
+          if (ext case '.png' || '.jpeg' || '.jpg') {
+            if (file.bytes == null) continue;
+            final added = cubit.addFile(
+              fileName: file.name, //.split('.').first,
+              fileContent: file.bytes!,
+            );
+            if (!added && context.mounted) {
+              context.showSnackBar(
+                'File with name "${file.name}" already exists',
+                type: SnackbarType.error,
+              );
+            }
+          } else {
+            if (!context.mounted) return;
             context.showSnackBar(
-              'File with name "${file.name}" already exists',
+              'only .png, .jpeg and .jpg files plis <3',
               type: SnackbarType.error,
             );
           }
