@@ -7,7 +7,10 @@ enum DownloadSizes {
   const DownloadSizes({required this.size});
   final (int, int) size;
 
-  String get fileSuffix => '_$name';
+  String get fileSuffix => switch (this) {
+        DownloadSizes.small => '_small',
+        DownloadSizes.medium => '_medium'
+      };
 }
 
 class DownloaderState {

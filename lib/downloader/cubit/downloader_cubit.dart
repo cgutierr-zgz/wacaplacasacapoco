@@ -137,7 +137,7 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
     html.AnchorElement(href: url)
       ..setAttribute('download', fileName)
       ..click();
-    html.Url.revokeObjectUrl(url);
+    //html.Url.revokeObjectUrl(url);
   }
 
   @override
