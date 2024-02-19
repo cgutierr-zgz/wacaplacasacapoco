@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:blurhash/blurhash.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:image/image.dart' as img;
+import 'package:image/image.dart';
 import 'package:path/path.dart' as p;
 
 part 'downloader_state.dart';
@@ -37,6 +38,11 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
   void toggleMaintainAspectRatio() {
     final newState =
         state.copyWith(maintainAspectRatio: !state.maintainAspectRatio);
+    emit(newState);
+  }
+
+  void changeInterpolation(Interpolation interpolationMode) {
+    final newState = state.copyWith(interpolationMode: interpolationMode);
     emit(newState);
   }
 
@@ -123,6 +129,7 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
           width: value.size.$1,
           height: value.size.$2,
           maintainAspect: state.maintainAspectRatio,
+          interpolation: img.Interpolation.average,
         );
         List<dynamic> blobParts;
         if (ext case '.png') {
@@ -165,6 +172,8 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
         downloadBlurHashImages: json['downloadBlurHashImages'] as bool,
         maintainAspectRatio: json['maintainAspectRatio'] as bool,
         downloadOriginalImage: json['downloadOriginalImage'] as bool,
+        interpolationMode:
+            img.Interpolation.values[json['interpolationMode'] as int],
       );
     } catch (e) {
       log('Could not load state. [$e]');
@@ -181,6 +190,7 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
         'downloadBlurHashImages': state.downloadBlurHashImages,
         'maintainAspectRatio': state.maintainAspectRatio,
         'downloadOriginalImage': state.downloadOriginalImage,
+        'interpolationMode': state.interpolationMode.index,
       };
     } catch (e) {
       log('Could not save state. [$e]');

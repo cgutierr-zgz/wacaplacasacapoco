@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image/image.dart';
 import 'package:wacaplacasacapoco/downloader/downloader.dart';
 
 class DownloaderSettingsDrawer extends StatelessWidget {
@@ -36,6 +37,22 @@ class DownloaderSettingsDrawer extends StatelessWidget {
                 value: state.maintainAspectRatio,
                 title: const Text('Maintain Aspect Ratio'),
                 onChanged: (_) => cubit.toggleMaintainAspectRatio(),
+              ),
+              const Text('Interpolation Mode'),
+              DropdownButton<Interpolation>(
+                value: state.interpolationMode,
+                items: List.generate(
+                  Interpolation.values.length,
+                  (index) {
+                    final item = Interpolation.values[index];
+                    return DropdownMenuItem(
+                      value: item,
+                      child: Text(item.name),
+                      onTap: () => cubit.changeInterpolation(item),
+                    );
+                  },
+                ),
+                onChanged: (value) {},
               ),
             ],
           ),
