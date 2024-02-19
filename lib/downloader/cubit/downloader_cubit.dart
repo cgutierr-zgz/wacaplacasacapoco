@@ -135,7 +135,7 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
     final blob = html.Blob(blobParts);
     final url = html.Url.createObjectUrlFromBlob(blob);
     html.AnchorElement(href: url)
-      ..setAttribute('download', fileName)
+      ..setAttribute('download', fileName.replaceAll(" ", "_").toLowerCase())
       ..click();
     //html.Url.revokeObjectUrl(url);
   }
