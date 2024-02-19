@@ -27,6 +27,11 @@ class DownloaderSettingsDrawer extends StatelessWidget {
               const Divider(),
               const Text('Download sizes'),
               Text(DownloadSizes.values.toString()),
+              SwitchListTile(
+                value: state.maintainAspectRatio,
+                title: const Text('Maintain Aspect Ratio'),
+                onChanged: (_) => cubit.toggleMaintainAspectRatio(),
+              ),
             ],
           ),
         );

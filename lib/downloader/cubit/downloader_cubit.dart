@@ -27,6 +27,12 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
     emit(newState);
   }
 
+  void toggleMaintainAspectRatio() {
+    final newState =
+        state.copyWith(maintainAspectRatio: !state.maintainAspectRatio);
+    emit(newState);
+  }
+
   bool addFile({required String fileName, required Uint8List fileContent}) {
     if (!state.images.containsKey(fileName)) {
       final images = {...state.images, fileName: fileContent};
@@ -97,6 +103,7 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
           image,
           width: value.size.$1,
           height: value.size.$2,
+          maintainAspect: state.maintainAspectRatio,
         );
         _downloadItem(
           blobParts: [img.encodePng(resized)],
@@ -125,12 +132,12 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
     try {
       //final images = Map<String, Uint8List>.from(json['images']);
       final blurHashMode = (json['blurHashMode'][0], json['blurHashMode'][1]);
-      final downloadBlurHashImages = json['downloadBlurHashImages'] as bool;
 
       return DownloaderState(
         images: {},
         blurHashMode: blurHashMode as (int, int),
-        downloadBlurHashImages: downloadBlurHashImages,
+        downloadBlurHashImages: json['downloadBlurHashImages'] as bool,
+        maintainAspectRatio: json['maintainAspectRatio'] as bool,
       );
     } catch (e) {
       log('Could not load state. [$e]');
@@ -145,6 +152,7 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
         //'images': state.images,
         'blurHashMode': [state.blurHashMode.$1, state.blurHashMode.$2],
         'downloadBlurHashImages': state.downloadBlurHashImages,
+        'maintainAspectRatio': state.maintainAspectRatio,
       };
     } catch (e) {
       log('Could not save state. [$e]');
