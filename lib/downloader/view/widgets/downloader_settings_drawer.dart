@@ -26,8 +26,7 @@ class DownloaderSettingsDrawer extends StatelessWidget {
               ),
               const Divider(),
               const Text('Download sizes'),
-              const ExportSizesInput(),
-              Text(state.downloadSizes.toString()),
+              Text(DownloadSizes.values.toString()),
             ],
           ),
         );

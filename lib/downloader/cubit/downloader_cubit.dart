@@ -66,31 +66,37 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
       state.blurHashMode.$1,
       state.blurHashMode.$2,
     );
-    // TODO: Download to folder/zip (?)
-
     _downloadItem(
       blobParts: [blurHash],
       fileName: '${fileName}_blurhash.txt',
     );
 
-    for (final size in state.downloadSizes) {
-      final name = '${size.$1}x${size.$2}_$fileName';
+    final image = img.decodeImage(fileContent)!;
+    _downloadItem(
+      blobParts: [img.encodePng(image)],
+      fileName: '${fileName}_L.png',
+    );
+
+    for (final value in DownloadSizes.values) {
+      final name = '$fileName${value.fileSuffix}';
 
       try {
         if (state.downloadBlurHashImages) {
-          final blurImage = await BlurHash.decode(blurHash, size.$1, size.$2);
-
+          final blurImage = await BlurHash.decode(
+            blurHash,
+            value.size.$1,
+            value.size.$2,
+          );
           _downloadItem(
             blobParts: [blurImage],
             fileName: '${name}_blurhash.png',
           );
         }
 
-        final image = img.decodeImage(fileContent)!;
         final resized = img.copyResize(
           image,
-          width: size.$1,
-          height: size.$2,
+          width: value.size.$1,
+          height: value.size.$2,
         );
         _downloadItem(
           blobParts: [img.encodePng(resized)],
@@ -111,41 +117,18 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
     html.AnchorElement(href: url)
       ..setAttribute('download', fileName)
       ..click();
-  }
-
-  void addDownloadSize({required int x, required int y}) {
-    final newSize = (x, y);
-    final newSizes = [...state.downloadSizes, newSize];
-    //final newState = state.copyWith(downloadSizes: newSizes);
-    final newState = state.copyWith(downloadSizes: [(200, 200), (500, 500)]);
-    emit(newState);
-  }
-
-  void removeDownloadSize(int index) {
-    if (index >= 0 && index < state.downloadSizes.length) {
-      final newSizes = List<(int, int)>.from(state.downloadSizes)
-        ..removeAt(index);
-      final newState = state.copyWith(downloadSizes: newSizes);
-      emit(newState);
-    }
+    html.Url.revokeObjectUrl(url);
   }
 
   @override
   DownloaderState? fromJson(Map<String, dynamic> json) {
     try {
       //final images = Map<String, Uint8List>.from(json['images']);
-      final downloadSizes = (json['downloadSizes'] as List<dynamic>)
-          .map((e) => (e[0], e[1]))
-          .toList();
       final blurHashMode = (json['blurHashMode'][0], json['blurHashMode'][1]);
       final downloadBlurHashImages = json['downloadBlurHashImages'] as bool;
 
       return DownloaderState(
         images: {},
-        downloadSizes: List.generate(downloadSizes.length, (index) {
-          final item = downloadSizes[index];
-          return (item.$1, item.$2);
-        }),
         blurHashMode: blurHashMode as (int, int),
         downloadBlurHashImages: downloadBlurHashImages,
       );
@@ -158,11 +141,8 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
   @override
   Map<String, dynamic>? toJson(DownloaderState state) {
     try {
-      final sizes = state.downloadSizes.map((e) => [e.$1, e.$2]).toList();
-
       return {
         //'images': state.images,
-        'downloadSizes': sizes,
         'blurHashMode': [state.blurHashMode.$1, state.blurHashMode.$2],
         'downloadBlurHashImages': state.downloadBlurHashImages,
       };
