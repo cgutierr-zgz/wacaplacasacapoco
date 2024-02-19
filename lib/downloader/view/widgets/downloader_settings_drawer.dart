@@ -17,6 +17,11 @@ class DownloaderSettingsDrawer extends StatelessWidget {
                 'Settings',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
               ),
+              SwitchListTile(
+                value: state.downloadOriginalImage,
+                title: const Text('Download Original Image'),
+                onChanged: (_) => cubit.toggleDownloadOGImage(),
+              ),
               const Text('BlurHash'),
               const BlurhashInput(),
               SwitchListTile(

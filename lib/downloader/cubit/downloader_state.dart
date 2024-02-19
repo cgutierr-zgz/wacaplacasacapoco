@@ -19,18 +19,21 @@ class DownloaderState {
     required this.blurHashMode,
     required this.downloadBlurHashImages,
     required this.maintainAspectRatio,
+    required this.downloadOriginalImage,
   });
 
   final Map<String, Uint8List> images;
   final (int, int) blurHashMode;
   final bool downloadBlurHashImages;
   final bool maintainAspectRatio;
+  final bool downloadOriginalImage;
 
   static const initialState = DownloaderState(
     images: {},
     blurHashMode: (3, 3),
     downloadBlurHashImages: false,
     maintainAspectRatio: false,
+    downloadOriginalImage: false,
   );
 
   DownloaderState copyWith({
@@ -38,6 +41,7 @@ class DownloaderState {
     (int, int)? blurHashMode,
     bool? downloadBlurHashImages,
     bool? maintainAspectRatio,
+    bool? downloadOriginalImage,
   }) {
     return DownloaderState(
       images: images ?? this.images,
@@ -45,6 +49,8 @@ class DownloaderState {
       downloadBlurHashImages:
           downloadBlurHashImages ?? this.downloadBlurHashImages,
       maintainAspectRatio: maintainAspectRatio ?? this.maintainAspectRatio,
+      downloadOriginalImage:
+          downloadOriginalImage ?? this.downloadOriginalImage,
     );
   }
 }

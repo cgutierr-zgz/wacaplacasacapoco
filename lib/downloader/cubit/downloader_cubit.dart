@@ -22,6 +22,12 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
     emit(newState);
   }
 
+  void toggleDownloadOGImage() {
+    final newState =
+        state.copyWith(downloadOriginalImage: !state.downloadOriginalImage);
+    emit(newState);
+  }
+
   void toggleDownloadBlurHashImages() {
     final newState =
         state.copyWith(downloadBlurHashImages: !state.downloadBlurHashImages);
@@ -82,12 +88,19 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
     );
 
     final image = img.decodeImage(fileContent)!;
-    /* MARK: OG image
-    _downloadItem(
-      blobParts: [img.encodePng(image)],
-      fileName: '${fileName}_og.png',
-    );
-    */
+
+    if (state.downloadOriginalImage) {
+      List<dynamic> blobParts;
+      if (ext case '.png') {
+        blobParts = img.encodePng(image);
+      } else {
+        blobParts = img.encodeJpg(image);
+      }
+      _downloadItem(
+        blobParts: [blobParts],
+        fileName: '$nameWithoutExtension$ext',
+      );
+    }
 
     for (final value in DownloadSizes.values) {
       final name = '$nameWithoutExtension${value.fileSuffix}';
@@ -135,7 +148,7 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
     final blob = html.Blob(blobParts);
     final url = html.Url.createObjectUrlFromBlob(blob);
     html.AnchorElement(href: url)
-      ..setAttribute('download', fileName.replaceAll(" ", "_").toLowerCase())
+      ..setAttribute('download', fileName.replaceAll(' ', '_').toLowerCase())
       ..click();
     //html.Url.revokeObjectUrl(url);
   }
@@ -151,6 +164,7 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
         blurHashMode: blurHashMode as (int, int),
         downloadBlurHashImages: json['downloadBlurHashImages'] as bool,
         maintainAspectRatio: json['maintainAspectRatio'] as bool,
+        downloadOriginalImage: json['downloadOriginalImage'] as bool,
       );
     } catch (e) {
       log('Could not load state. [$e]');
@@ -166,6 +180,7 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
         'blurHashMode': [state.blurHashMode.$1, state.blurHashMode.$2],
         'downloadBlurHashImages': state.downloadBlurHashImages,
         'maintainAspectRatio': state.maintainAspectRatio,
+        'downloadOriginalImage': state.downloadOriginalImage,
       };
     } catch (e) {
       log('Could not save state. [$e]');
