@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:blurhash/blurhash.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:image/image.dart' as img;
+import 'package:path/path.dart' as p;
 
 part 'downloader_state.dart';
 
@@ -72,19 +73,24 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
       state.blurHashMode.$1,
       state.blurHashMode.$2,
     );
+    final nameWithoutExtension = p.basenameWithoutExtension(fileName);
+    final ext = p.extension(fileName).toLowerCase();
+
     _downloadItem(
       blobParts: [blurHash],
-      fileName: '${fileName}_blurhash.txt',
+      fileName: '${nameWithoutExtension}_blurhash.txt',
     );
 
     final image = img.decodeImage(fileContent)!;
+    /* MARK: OG image
     _downloadItem(
       blobParts: [img.encodePng(image)],
-      fileName: '${fileName}_L.png',
+      fileName: '${fileName}_og.png',
     );
+    */
 
     for (final value in DownloadSizes.values) {
-      final name = '$fileName${value.fileSuffix}';
+      final name = '$nameWithoutExtension${value.fileSuffix}';
 
       try {
         if (state.downloadBlurHashImages) {
@@ -95,7 +101,7 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
           );
           _downloadItem(
             blobParts: [blurImage],
-            fileName: '${name}_blurhash.png',
+            fileName: '${nameWithoutExtension}_blurhash.png',
           );
         }
 
@@ -105,8 +111,15 @@ class DownloaderCubit extends HydratedCubit<DownloaderState> {
           height: value.size.$2,
           maintainAspect: state.maintainAspectRatio,
         );
+        List<dynamic> blobParts;
+        if (ext case '.png') {
+          // || '.apng') {
+          blobParts = img.encodePng(resized);
+        } else {
+          blobParts = img.encodeJpg(resized);
+        }
         _downloadItem(
-          blobParts: [img.encodePng(resized)],
+          blobParts: [blobParts],
           fileName: '$name.png',
         );
       } catch (e) {

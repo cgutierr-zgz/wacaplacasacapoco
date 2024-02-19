@@ -1,3 +1,5 @@
+import 'dart:html';
+
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,16 +33,17 @@ class _DropZoneState extends State<DropZone> {
               onHover: () => setState(() => onHover = true),
               onDrop: (ev) async {
                 final filename = await controller.getFilename(ev);
-                final name = filename.split('.').first;
+               // final fileMIME = await controller.getFileMIME(ev);
+                
                 final data = await controller.getFileData(ev);
                 setState(() => onHover = false);
                 final added = cubit.addFile(
-                  fileName: name,
+                  fileName: filename,
                   fileContent: data,
                 );
                 if (!added && context.mounted) {
                   context.showSnackBar(
-                    'File with name "$name" already exists',
+                    'File with name "$filename" already exists',
                     type: SnackbarType.error,
                   );
                 }

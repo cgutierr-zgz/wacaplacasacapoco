@@ -21,7 +21,7 @@ class FilePickerButton extends StatelessWidget {
         for (final file in result.files) {
           if (file.bytes == null) continue;
           final added = cubit.addFile(
-            fileName: file.name.split('.').first,
+            fileName: file.name,//.split('.').first,
             fileContent: file.bytes!,
           );
           if (!added && context.mounted) {

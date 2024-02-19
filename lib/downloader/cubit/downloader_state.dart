@@ -1,13 +1,13 @@
 part of 'downloader_cubit.dart';
 
 enum DownloadSizes {
-  s(size: (200, 200)),
-  m(size: (300, 300));
+  small(size: (200, 200)),
+  medium(size: (300, 300));
 
   const DownloadSizes({required this.size});
   final (int, int) size;
 
-  String get fileSuffix => '_${name.toUpperCase()}';
+  String get fileSuffix => '_$name';
 }
 
 class DownloaderState {
